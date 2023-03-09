@@ -1505,7 +1505,6 @@ action = "ui_jump_i0"
 visibility_mode = 1
 
 [node name="Transition" type="ColorRect" parent="."]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3

@@ -1,27 +1,26 @@
 extends KinematicBody2D
 class_name PlayerPhysics
 # imports
-const MOTION_HANDLER = preload("res://game-assets/game-scripts/player-scripts/motion-handler.gd")
-const COLLISION_HANDLER = preload("res://game-assets/game-scripts/player-scripts/collision-handler.gd")
+onready var m_handler = preload("res://game-assets/game-scripts/player-scripts/motion-handler.gd").new(self)
+onready var coll_handler = preload("res://game-assets/game-scripts/player-scripts/collision-handler.gd").new(self)
 
-enum Side{
-	LEFT=-1, RIGHT=1
-}
+#enum Side{
+#	LEFT=-1, RIGHT=1
+#}
 
-onready var m_handler:MOTION_HANDLER = MOTION_HANDLER.new(self)
-onready var coll_handler := COLLISION_HANDLER.new(self)
 
 signal damaged
 signal rings_update(value)
 signal character_changed(previous_character, current_character)
-var rings:int = 100 setget set_rings
-var score:int = 0
+var rings = 100 setget set_rings
+var score = 0
 var player_index: int
 var respawn_point : Vector2
-var main_player : bool = false
-var robot : bool = false
+var main_player = false
+var robot = false
 
-export(int) var selected_character_index setget set_selected_character
+export var selected_character_index = 0 setget set_selected_character
+
 var acc
 var dec
 var roll_dec
@@ -36,9 +35,10 @@ var fall
 var air
 var grv
 var spin_dash
+
 var my_spawn_point : PlayerSpawner
 onready var selected_character_node : Character
-onready var fsm : = $StateMachine
+onready var fsm = $StateMachine
 onready var shield_container := $ShieldContainer
 var char_state_manager
 onready var player_camera = $CameraSpace/PlayerCamera
@@ -57,11 +57,10 @@ onready var right_wall_bottom:RayCast2D = $RightWallSensorBottom
 onready var attack_area : Area2D = $AttackBox
 onready var attack_shape : CollisionShape2D = attack_area.get_node("hitbox")
 
-onready var hitbox_area : Area2D = $HitBox
-onready var hitbox_shape : CollisionShape2D = hitbox_area.get_node("hitbox")
+onready var hitbox_area = $HitBox
+onready var hitbox_shape = hitbox_area.get_node("hitbox")
 
-onready var characters_autoload = get_node("/root/AutoloadCharacters")
-onready var characters_path = characters_autoload.characters
+onready var characters_path = AutoloadCharacters.characters
 onready var character = $Character
 onready var sprite
 var char_default_collision
@@ -78,7 +77,8 @@ var direction : Vector2 = Vector2.ZERO
 var gsp : float
 var speed : Vector2
 var ground_mode : int
-var control_locked : bool = false setget , is_control_locked
+var control_locked = false
+#var control_locked : bool = false setget , is_control_locked
 const control_unlock_time_normal = .5
 onready var control_unlock_timer : Timer = $ControlUnlockTimer
 var can_fall : bool
@@ -117,60 +117,67 @@ var previous_rotation : float = 0.0
 # change to false when changes state
 var play_specific_anim : bool = false setget set_play_specific_anim
 
-func _enter_tree() -> void:
-	set_physics_process(false)
-	set_process(false)
+#literally why
+#func _enter_tree():
+#	set_physics_process(false)
+#	set_process(false)
 
 func _ready():
 	if Engine.editor_hint: return
-	set_physics_process(false)
-	set_process(false)
-	hitbox_area.set_owner(self)
-	attack_area.set_owner(self)
+	#set_physics_process(false)
+	#set_process(false)
+	#hitbox_area.set_owner(self)
+	#attack_area.set_owner(self)
+	
+	#so that they can animate independently
 	character.set_as_toplevel(true)
 	shield_container.set_as_toplevel(true)
+	
+	
 	fsm._on_host_ready(self)
 	shield_container._on_host_ready(self)
 	
+	#set character
 	set_selected_character(selected_character_index)
-	set_collision_mask(get_collision_mask())
+	
+	#set_collision_mask(get_collision_mask())
 	#yield(selected_character_node, "ready")
-	selected_character_node.on_player_load_me(self)
+	#selected_character_node.on_player_load_me()
+	
+	#if player camera exists, set to this
 	if player_camera:
 		player_camera.camera_ready(self)
-	set_process(true)
-	set_physics_process(true)
+	#set_process(true)
+	#set_physics_process(true)
 
-func get_rays() -> Array:
+func get_rays():
 	return [left_ground, middle_ground, right_ground, left_wall, left_wall_bottom, right_wall, right_wall_bottom]
 	
 
-func get_ray(val : int) -> RayCast2D:
-	var rays = get_rays()
-	return rays[val]
+func get_ray(val):
+	return get_rays()[val]
 
-func set_ground_rays (val : bool) -> void:
+func set_ground_rays(val):
 	for i in [middle_ground, left_ground, right_ground]:
-		(i as RayCast2D).set_deferred("enabled", val)
+		i.set_deferred("enabled", val)
 
 # override
-func set_collision_mask(val : int) -> void:
+func set_collision_mask(val : int):
 	.set_collision_mask(val)
 	for i in get_rays():
 		i.set_collision_mask(val)
-
-func set_collision_mask_bit(val : int, switch : bool) -> void:
+func set_collision_mask_bit(val : int, switch : bool):
 	.set_collision_mask_bit(val, switch)
 	for i in get_rays():
 		i.set_collision_mask_bit(val, switch)
 
-func _set_can_break_wall( val : bool ) -> void:
+func _set_can_break_wall(val : bool):
 	can_break_wall = val
 	set_collision_mask_bit(5, can_break_wall)
 	set_collision_layer_bit(5, can_break_wall)
 	
 
-func set_speed_shoes(val:bool) -> void:
+func set_speed_shoes(val : bool):
 	speed_shoes = val
 	for i in ['top', 'acc', 'dec', 'frc']:
 		set(i, selected_character_node.character_values.get(i) * (1 if !speed_shoes else 1.7))
@@ -185,7 +192,7 @@ func set_speed_shoes(val:bool) -> void:
 			grv = selected_character_node.grv
 	player_vfx.get_node('Trail').enabled = speed_shoes
 
-func set_underwater(val:bool) -> void:
+func set_underwater(val:bool):
 	underwater = val
 	for i in ['top', 'acc', 'dec', 'frc', 'air']:
 		set(i, selected_character_node.character_values.get(i) / (1 if !underwater else 2))
@@ -199,7 +206,7 @@ func set_underwater(val:bool) -> void:
 		for i in ['top', 'acc', 'dec', 'frc', 'air']:
 			set(i, get(i) * (1 if !speed_shoes else 1.7))
 
-func _physics_process(delta: float) -> void:
+func _physics_process(delta: float):
 	fsm._fsm_physics_process(delta)
 	coll_handler.step_collision(delta)
 	speed = move_and_slide_preset()
@@ -212,8 +219,7 @@ func _physics_process(delta: float) -> void:
 		position.x = min(player_camera.camera.limit_right-9, position.x)
 	else:
 		position.x = max(9, position.x)
-	if is_on_floor():
-		is_grounded = true
+	is_grounded = is_on_floor()
 	ground_ray = coll_handler.get_ground_ray()
 	is_ray_colliding = ground_ray != null
 	if ground_ray and is_ray_colliding:
@@ -235,20 +241,25 @@ func _physics_process(delta: float) -> void:
 		is_wall_left = is_wall_left or global_position.x- Utils.Collision.get_width_of_shape(main_collider.shape) - player_camera.camera.limit_left <= 0
 		is_wall_right = is_wall_right or global_position.x+9 - player_camera.camera.limit_right >= 0
 
-func _process(delta : float) -> void:
+func _process(delta : float):
 	fsm._fsm_process(delta)
 	character.global_position = global_position
 	character.z_index = z_index
 	character.visible = visible
 	shield_container.global_position = global_position
+	
+	
 	if !is_attacking:
 		shield_container.scale.x = side
 	else:
-		shield_container.scale.x = sign(speed.x) if speed.x != 0 else side
+		if speed.x != 0:
+			shield_container.scale.x = sign(speed.x)
+		else:
+			shield_container.scale.x = side
 	
 	roll_anim = animation.current_animation == 'Rolling' or selected_character_node.is_rolling
 
-func play_specific_anim_until(animation_name : String, custom_speed : float = 1.0, can_loop : bool = true, node:Object = fsm, signal_name = "state_changed") -> void:
+func play_specific_anim_until(animation_name : String, custom_speed : float = 1.0, can_loop : bool = true, node:Object = fsm, signal_name = "state_changed"):
 	play_specific_anim = true
 	animation.animate(animation_name, custom_speed, can_loop)
 	if node != null and signal_name != null:
@@ -264,15 +275,16 @@ func _ended_specific_anim(node : Object, signal_name):
 	if node.is_connected(signal_name, self, 'ended_specific_anim'):
 		node.disconnect(signal_name, self, 'ended_specific_anim')
 
-func lock_control(time:float = control_unlock_time_normal) -> void:
+func lock_control(time:float = control_unlock_time_normal):
 	control_locked = true
 	control_unlock_timer.start(time)
 
-func unlock_control() -> void:
+func unlock_control():
 	control_locked = false
 	control_unlock_timer.stop()
 
-func is_control_locked() -> bool: return control_locked
+#func is_control_locked() -> bool:
+#	return control_locked
 
 func damage(side:Vector2 = Vector2.ZERO, sound_to_play:String = "hurt"):
 	if invulnerable:
@@ -282,7 +294,7 @@ func damage(side:Vector2 = Vector2.ZERO, sound_to_play:String = "hurt"):
 	var timer = get_tree().create_timer(time_invulnerable)
 	invulnerable_until(timer, "timeout")
 	blink(time_invulnerable)
-	erase_snap()
+	snap_margin = 0
 	lock_control()
 	was_damaged = true
 	speed.x = side.x * 220
@@ -302,7 +314,7 @@ func damage(side:Vector2 = Vector2.ZERO, sound_to_play:String = "hurt"):
 	else:
 		audio_player.play(sound_to_play)
 
-func invulnerable_until(obj, until:String) -> void:
+func invulnerable_until(obj, until:String):
 	invulnerable = true
 	obj.connect(until, self, "make_vulnerable")
 
@@ -341,24 +353,29 @@ func drop_rings():
 		rings_group.append(instance_ring)
 		instance_ring.set_as_toplevel(true)
 
-func make_vulnerable() -> void:
+func make_vulnerable():
 	was_damaged = false
 	invulnerable = false
 	modulate.a = 1.0
 
-func set_selected_character(val : int) -> void:
+func set_selected_character(val):
 	# Check for character
 	if !character: return
+	
 	selected_character_index = clamp(val, 0, characters_path.size())
 	var previous_character
 	if selected_character_index != val:
+		#bug
 		if character.get_children().size() != 0:
 			previous_character = character.get_child(0)
 		var current_character_scene: PackedScene = load(characters_path[selected_character_index].path)
 		selected_character_node = current_character_scene.instance()
 	else:
+		
 		selected_character_node = character.get_child(0)
-	selected_character_node.on_player_load_me(self)
+	
+	selected_character_node.msm.character_ready(selected_character_node)
+	
 	char_state_manager = selected_character_node.msm
 	sprite = selected_character_node.get_node("Sprite")
 	var coll_container = selected_character_node.get_node("CollisionContainer")
@@ -366,29 +383,29 @@ func set_selected_character(val : int) -> void:
 	char_roll_collision = coll_container.get_node("RollBox")
 	animation = sprite.get_node("CharAnimation")
 	animation.connect("animation_finished", fsm, "_on_CharAnimation_animation_finished")
-	var props = [
+	var properties = [
 		"acc", "dec", "roll_dec", "frc", "slp", "slp_roll_up",
 		"slp_roll_down", "top", "top_roll", "jmp", "fall", "air",
 		"grv", "spin_dash"
 	]
-	for i in props:
+	for i in properties:
 		if !get(i):
 			set(i, selected_character_node.character_values.get(i))
+	
 	if selected_character_index != val:
 		emit_signal("character_changed", previous_character, selected_character_node)
 
-func _on_ControlUnlockTimer_timeout() -> void:
+func _on_ControlUnlockTimer_timeout():
 	control_unlock_timer.set_wait_time(control_unlock_time_normal)
 	unlock_control()
 
-func move_and_slide_preset(val = null) -> Vector2:
-	var top_collide:Vector2 = Vector2(sin(rotation), -cos(rotation))
+func move_and_slide_preset(val = null):
+	var top_collide = Vector2(sin(rotation), -cos(rotation))
 	#var fways:Vector2 = Utils.angle2Vec2(Utils.rad2dir(top_collide.angle_to(Vector2.LEFT), 4))
-	var bottom_snap:Vector2 = -top_collide * snap_margin
 	#print(bottom_snap)
 	return move_and_slide_with_snap(
 		speed if !val else val,
-		bottom_snap,
+		-top_collide * snap_margin,
 		top_collide,
 		true,
 		4,
@@ -396,17 +413,11 @@ func move_and_slide_preset(val = null) -> Vector2:
 		true
 	)
 
-func reset_snap():
-	snap_margin = snaps
 
-func erase_snap():
+func jump():
 	snap_margin = 0
-
-func jump() -> String:
-	erase_snap()
 	var ground_angle = coll_handler.ground_angle()
-	speed.x += -jmp * sin(ground_angle)
-	speed.y += -jmp * cos(ground_angle)
+	speed += Vector2(-jmp * sin(ground_angle), -jmp * cos(ground_angle))
 	speed = move_and_slide_preset()
 	is_grounded = false
 	spring_loaded = false
@@ -415,7 +426,7 @@ func jump() -> String:
 	audio_player.play('jump')
 	return 'OnAir'
 
-func set_side(val : int) -> void:
+func set_side(val : int):
 	side = val
 	character.scale.x = side
 
@@ -432,7 +443,7 @@ func deactivate():
 	main_player = false
 	player_camera.camera.current = false
 
-func set_play_specific_anim(val : bool) -> void:
+func set_play_specific_anim(val : bool):
 	play_specific_anim = val
 
 func erase_state():
@@ -447,7 +458,7 @@ func erase_state():
 	has_jumped = false
 	selected_character_node.erase_state()
 
-func set_is_attacking(val : bool) -> void:
+func set_is_attacking(val : bool):
 	is_attacking = val
 	attack_area.monitoring = is_attacking
 
@@ -469,7 +480,7 @@ func do_all():
 	set_process(true)
 	set_process_unhandled_input(true)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent):
 	var action_chk = funcref(Utils.UInput, "is_action")
 	if !control_locked:
 		var ui_left = 'ui_left_i%d' % player_index
@@ -486,5 +497,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	fsm._fsm_input(event)
 
-func get_class() -> String: return "PlayerPhysics"
-func is_class(val : String) -> bool: return val == get_class() or .is_class(val)
+func get_class():
+	return "PlayerPhysics"
+func is_class(val):
+	return val == get_class() or .is_class(val)

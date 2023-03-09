@@ -132,7 +132,7 @@ class Collision:
 		
 		return collision_points
 	static func is_collider_oneway(ray_cast : RayCast2D, collider) -> bool:
-		var to_return : bool = false
+		var to_return = false
 		if !collider:
 			return to_return
 		#print(ray_cast.name)
@@ -149,7 +149,6 @@ class Collision:
 				var collider_shape_id : int = ray_cast.get_collider_shape()
 				var collider_shape_owner_id : int = coll.shape_find_owner(collider_shape_id)
 				to_return = coll.is_shape_owner_one_way_collision_enabled(collider_shape_owner_id)
-				
 		return to_return
 	static func get_collider_normal_precise(ray:RayCast2D, ground_mode):
 		var collider = ray.get_collider()

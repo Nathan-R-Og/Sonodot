@@ -93,6 +93,7 @@ func _on_CharAnimation_animation_finished(anim_name: String) -> void:
 
 func _on_Player_character_changed(previous_character, current_character):
 	pass
+
 func _on_Player_draw():
 	var state = get_current_state_node()
 	if state_collection.has_state(current_state):

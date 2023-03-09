@@ -64,7 +64,7 @@ class PinballLeverState extends State:
 			host.speed.x = host.speed.x * current_lever.scale.y
 			host.speed.y = -abs(host.speed.y)
 			host.is_grounded = false
-			host.erase_snap()
+			host.snap_margin = 0
 			host.move_and_slide_preset()
 			current_lever.animator.play("Move")
 			host.fsm.erase_state(name, "OnAir")

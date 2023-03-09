@@ -100,8 +100,7 @@ func _process(delta):
 func physics_step():
 	position.x = max(position.x, 9.0)
 	
-	if is_on_floor():
-		is_grounded = true
+	is_grounded = is_on_floor()
 	
 	var can_break = abs(gsp) > 270 && is_rolling
 	var coll = [self, right_wall, right_wall_bottom, left_wall, left_wall_bottom]

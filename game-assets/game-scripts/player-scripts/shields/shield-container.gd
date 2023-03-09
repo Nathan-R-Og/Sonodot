@@ -10,7 +10,7 @@ var shield : Shield
 func _on_host_ready(host_):
 	set_process(false)
 	host = host_
-	shield_paths = host.characters_autoload.shields_path
+	shield_paths = AutoloadCharacters.shields_path
 	#attach_shield(0)
 
 var activated : bool = false

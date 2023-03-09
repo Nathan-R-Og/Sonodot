@@ -1,7 +1,7 @@
 extends State
 
 func state_enter(host, prev_state):
-	host.erase_snap()
+	host.snap_margin = 0
 
 func state_physics_process(host, delta):
 	if host.is_on_ceiling():

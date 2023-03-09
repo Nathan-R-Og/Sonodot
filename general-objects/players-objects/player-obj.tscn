@@ -85,9 +85,6 @@ z_index = 1
 collision_layer = 512
 collision_mask = 225
 script = ExtResource( 12 )
-__meta__ = {
-"_edit_group_": true
-}
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 5 )
@@ -153,7 +150,6 @@ max_length = 20
 
 [node name="Character" type="Node2D" parent="."]
 __meta__ = {
-"_edit_group_": true,
 "_edit_lock_": true
 }
 

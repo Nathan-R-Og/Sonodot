@@ -12,7 +12,7 @@ var was_throwed : bool = false
 
 
 func state_enter(host, prev_state):
-	host.erase_snap()
+	host.snap_margin = 0
 	host.ground_sensors_container.rotation = 0
 	if host.spring_loaded or host.roll_anim:
 		host.character.rotation = 0

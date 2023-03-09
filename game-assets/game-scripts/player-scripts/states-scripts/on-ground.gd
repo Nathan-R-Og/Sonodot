@@ -8,7 +8,7 @@ var idle_anim = 'Idle'
 func state_enter(host, prev_state):
 	host.is_pushing = false
 	idle_anim = 'Idle'
-	host.reset_snap()
+	host.snap_margin = host.snaps
 	host.suspended_jump = false
 	
 
@@ -25,13 +25,13 @@ func state_physics_process(host : PlayerPhysics, delta):
 		return
 	
 	if !host.is_grounded:
-		host.erase_snap()
+		host.snap_margin = 0
 		finish("OnAir")
 		return
 	
 	if !host.is_ray_colliding or coll_handler.fall_from_ground() or host.is_floating:
 		host.is_grounded = false
-		host.erase_snap()
+		host.snap_margin = 0
 		finish("OnAir")
 		return
 	

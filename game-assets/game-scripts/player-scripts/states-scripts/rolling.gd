@@ -23,13 +23,13 @@ func state_physics_process(host: PlayerPhysics, delta):
 	
 	if !host.is_grounded or host.is_floating:
 		host.is_grounded = false
-		host.erase_snap()
+		host.snap_margin = 0
 		finish("OnAir")
 		return
 	
 	if !host.is_ray_colliding or coll_handler.fall_from_ground():
 		host.is_grounded = false
-		host.erase_snap()
+		host.snap_margin = 0
 		finish("OnAir")
 		return
 	#print(rad2deg(ground_angle))

@@ -2702,7 +2702,7 @@ cell_custom_transform = Transform2D( 0, 0, 0, 0, 0, 0 )
 collision_layer = 25
 collision_mask = 25
 format = 1
-tile_data = PoolIntArray( -1900405, -1073741820, 0, -1376161, 1, 0, 65587, 3, 0, 1048635, 3, 0 )
+tile_data = PoolIntArray( -1900405, -1073741820, 0, -1376161, 1, 0, -917439, 3, 0, 65587, 3, 0, 1048635, 3, 0, 1114226, 0, 0, 1114231, 0, 0 )
 __meta__ = {
 "_edit_lock_": true
 }
