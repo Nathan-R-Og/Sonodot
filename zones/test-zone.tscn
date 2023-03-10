@@ -16,6 +16,7 @@ script = ExtResource( 1 )
 zone_name = "Test Zone"
 
 [node name="HUD" parent="." instance=ExtResource( 38 )]
+follow_viewport_scale = 4.0
 
 [node name="Players" type="Node" parent="."]
 script = ExtResource( 20 )
@@ -27,7 +28,7 @@ script = ExtResource( 58 )
 [node name="PlayersObj" type="Node" parent="Players"]
 
 [node name="Sign" parent="." instance=ExtResource( 44 )]
-position = Vector2( 13400, -1229 )
+position = Vector2( 2479, 292 )
 start_from_air = true
 jump_when_pass = true
 

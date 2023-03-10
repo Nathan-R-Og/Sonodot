@@ -26,15 +26,17 @@ func _ready():
 		HUD.transition.color.a = 0.0
 	#Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
-func update_ring_count(value:int):
-	if (ring_counter != null):
-		ring_counter.text = String(value);
+#func update_ring_count(value:int):
+#	if (ring_counter != null):
+#		ring_counter.text = String(value);
 
 
 func get_global_mouse_position() -> Vector2:
 	return get_viewport().get_mouse_position()
 
 func _process(delta):
+	ring_counter.text = String(players.get_node("PlayersObj").get_child(0).rings)
+	
 	count += delta;
 	seconds = int(count) % 60;
 	minutes = floor(count / 60);
@@ -47,8 +49,8 @@ func _process(delta):
 func _unhandled_input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("ui_full_screen"):
 		OS.window_fullscreen = !OS.window_fullscreen
-	if event.scancode == KEY_0:
-		Engine.time_scale = 2.0 - int(!event.is_pressed())
+	#if event.scancode == KEY_0:
+	#	Engine.time_scale = 2.0 - int(!event.is_pressed())
 
 func get_current_act() -> int:
 	return act_container.current_act

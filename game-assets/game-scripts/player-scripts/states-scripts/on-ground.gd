@@ -1,82 +1,114 @@
 extends State
 
-var slope : float
+#var slope : float
 var is_braking : bool
 var brake_sign : int
 var idle_anim = 'Idle'
+var brake_time = 0.0
 
 func state_enter(host, prev_state):
 	host.is_pushing = false
-	idle_anim = 'Idle'
+	#idle_anim = 'Idle'
 	host.snap_margin = host.snaps
 	host.suspended_jump = false
 	
 
 func state_physics_process(host : PlayerPhysics, delta):
 	#print("test")
-	var gsp_dir = sign(host.gsp)
-	var abs_gsp = abs(host.gsp)
 	var coll_handler = host.coll_handler
 	var m_handler = host.m_handler
 	var ground_angle = coll_handler.ground_angle()
 	
-	if abs_gsp == 0 && host.direction.x == 0:
+	#if total groundspeed == 0
+	#and no specific direction
+	###happens when landing while holding neutral with no velocity
+	###(jumping in place basically)
+	if abs(host.gsp) == 0 && host.direction.x == 0:
+		#set idle
 		finish("Idle")
 		return
 	
-	if !host.is_grounded:
-		host.snap_margin = 0
-		finish("OnAir")
-		return
-	
-	if !host.is_ray_colliding or coll_handler.fall_from_ground() or host.is_floating:
+	#if rays aren't colliding
+	#or falling from ground
+	#or floating
+	###happens mainly when falling off a ledge
+	if not host.is_ray_colliding or coll_handler.fall_from_ground() or host.is_floating:
+		#set not grounded
 		host.is_grounded = false
+	if not host.is_grounded:
 		host.snap_margin = 0
 		finish("OnAir")
 		return
 	
 	m_handler.handle_ground_motion()
 	ground_angle = coll_handler.ground_angle()
-	gsp_dir = sign(host.gsp)
-	abs_gsp = abs(host.gsp)
-	
+	var gsp_dir = sign(host.gsp)
+	var abs_gsp = abs(host.gsp)
+	#if
+	###direction.x and -gsp_dir are both zero, or holding against your speed
 	if host.direction.x == -gsp_dir:
-		var braking_dec : float = host.dec
+		#if total gsp == 0
 		if abs_gsp == 0:
-			host.gsp = braking_dec * host.direction.x
+			#set to (zero) dec * direction.x
+			host.gsp = host.dec * host.direction.x
+		#if total gsp > 0
 		elif abs_gsp > 0:
-			host.gsp += braking_dec * host.direction.x
-		if abs_gsp >= 380:
-			if !is_braking:
+			#push against gsp
+			host.gsp += host.dec * host.direction.x
+		var brakeLimit = 380
+		#if total gsp >= brakeLimit
+		if abs_gsp >= brakeLimit:
+			#brake
+			host.character.rotation_degrees = 0
+			if not is_braking:
 				brake_sign = gsp_dir
 				host.audio_player.play('brake')
 			is_braking = true
 	else:
-		if !is_braking and abs_gsp < host.top:
-				host.gsp += host.acc * host.direction.x
+		#if not braking and less than cap
+		if not is_braking and abs_gsp < host.top:
+			#add to speed
+			host.gsp += host.acc * host.direction.x
 	
 	abs_gsp = abs(host.gsp)
 	gsp_dir = sign(host.gsp)
-	if gsp_dir != brake_sign or abs_gsp <= 0.1:
+	
+	var stopBrakeLimit = .1
+	#if speed dir != brake dir OR total speed <= stopBrakeLimit
+	if gsp_dir != brake_sign or abs_gsp <= stopBrakeLimit:
+		#stop braking
 		is_braking = false
 	
-	if coll_handler.is_pushing_wall():
+	host.is_pushing = coll_handler.is_pushing_wall()
+	#if pushing wall
+	if host.is_pushing:
+		#set speed to 0.0
 		host.gsp = 0.0
-		host.is_pushing = true
-	else:
-		host.is_pushing = false
+	#if coll_handler.is_pushing_wall():
+	#	host.gsp = 0.0
+	#	host.is_pushing = true
+	#else:
+	#	host.is_pushing = false
 	
 	host.is_braking = is_braking
-	
-	host.speed.x = host.gsp * cos(ground_angle)
-	host.speed.y = host.gsp * -sin(ground_angle)
+	host.speed = Vector2(host.gsp * cos(ground_angle), host.gsp * -sin(ground_angle))
 	
 	if host.constant_roll:
 		finish("Rolling")
 		return
-	
-	if !host.can_fall or (abs(rad2deg(ground_angle)) <= 30 && host.rotation != 0):
+	var okayGround = 30.0
+	#if can't fall
+	#or 
+	##is a justified ground angle
+	##and host isn't rotated
+	if not host.can_fall or (abs(rad2deg(ground_angle)) <= okayGround && host.rotation != 0):
 		coll_handler.snap_to_ground()
+	var brakeLimitTime = .5
+	if is_braking:
+		brake_time += delta
+		if brake_time >= brakeLimitTime:
+			is_braking = false
+			brake_time = 0.0
 
 func state_exit(host, next_state):
 	is_braking = false
@@ -95,20 +127,23 @@ func state_animation_process(host, delta:float, animator: CharacterAnimator):
 	var coll_handler = host.coll_handler
 	var m_handler = host.m_handler
 	var ground_angle = coll_handler.ground_angle()
-	if abs_gsp > .1 and !is_braking:
-		idle_anim = 'Idle'
-		var joggin = 280
-		var runnin = 420
+	
+	
+	
+	if abs_gsp > .1 and not is_braking:
+		#idle_anim = 'Idle'
+		var jogging = 280
+		var running = 420
 		var faster_run = 960
 		
 		anim_name = 'Walking'
-		if abs_gsp >= joggin and abs_gsp < runnin:
+		if abs_gsp >= jogging and abs_gsp < running:
 			anim_name = "Jogging"
-		elif abs_gsp >= runnin and abs_gsp < faster_run:
+		elif abs_gsp >= running and abs_gsp < faster_run:
 			anim_name = "Running"
 		elif abs_gsp > faster_run:
 			anim_name = "SuperPeelOut"
-		var host_char:Node2D = host.character
+		var host_char = host.character
 		#var inv_transform : Transform2D= host.transform.inverse()
 		
 		#print(host_char.global_rotation)
@@ -136,7 +171,7 @@ func state_animation_process(host, delta:float, animator: CharacterAnimator):
 		
 	else:
 		if host.is_pushing:
-			idle_anim = 'Idle'
+			#idle_anim = 'Idle'
 			anim_name = 'Pushing'
 			anim_speed = 1.5;
 	
@@ -145,16 +180,16 @@ func state_animation_process(host, delta:float, animator: CharacterAnimator):
 func _on_animation_finished(host, anim_name):
 	if anim_name == 'Walking':
 		is_braking = false
-	elif anim_name == 'Idle':
-		idle_anim = 'Idle'
-	elif anim_name == 'Idle':
-		idle_anim = 'Idle'
+	#elif anim_name == 'Idle':
+	#	idle_anim = 'Idle'
+	#elif anim_name == 'Idle':
+	#	idle_anim = 'Idle'
 
 
 func on_animation_finished(host, anim_name):
 	match anim_name:
 		'Walking': is_braking = false;
-		'Idle': idle_anim = 'Idle';
+		#'Idle': idle_anim = 'Idle';
 		'Braking':
 			var gsp_dir = sign(host.gsp);
 			if (host.gsp != 0 ||\
@@ -164,7 +199,7 @@ func on_animation_finished(host, anim_name):
 			elif host.direction.x == 0 ||\
 			host.direction.x == gsp_dir:
 				is_braking = false;
-				idle_anim = 'Idle';
+				#idle_anim = 'Idle';
 
 func state_input(host, event):
 	if host.direction.y != 0:

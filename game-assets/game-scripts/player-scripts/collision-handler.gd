@@ -77,7 +77,7 @@ func snap_to_ground() -> void:
 	#host.previous_rotation = host.rotation
 	
 	#the higher, the more available rotations
-	var rotationFiness = 8
+	var rotationFiness = 16
 	host.rotation = -Utils.Math.rad2slice(ground_angle(), rotationFiness)
 	host.speed += -host.ground_normal * 150
 

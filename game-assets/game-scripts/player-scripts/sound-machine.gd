@@ -47,7 +47,7 @@ func _setup_and_add_stream(stream_:int, audio_name:String):
 	else:
 		stream = _instantied_players[audio_name]
 	stream.set_stream(sound_collection.get_sound(audio_name))
-	stream.set_volume_db(main_volume_db)
+	stream.set_volume_db(main_volume_db - 10)
 	stream.set_pitch_scale(main_pitch_scale)
 	stream.set_bus(bus)
 	add_child(stream)

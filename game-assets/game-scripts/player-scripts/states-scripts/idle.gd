@@ -1,18 +1,18 @@
 extends State
 #Idle
 
-var slope : float
-
 func state_enter(host : PlayerPhysics, prev_state):
 	host.speed = Vector2.ZERO
 	host.direction = Vector2.ZERO
 	host.gsp = 0
+	#sonic mania does this don't blame me
+	host.character.rotation_degrees = 0
 
 func state_physics_process(host : PlayerPhysics, delta):
 	var ground_angle = host.coll_handler.ground_angle()
-	slope = -host.slp
-	host.gsp += slope * sin(ground_angle)
+	host.gsp += -host.slp * sin(ground_angle)
 	host.gsp -= min(abs(host.gsp), host.frc) * sign(host.gsp)
+	
 	if host.constant_roll:
 		finish("Rolling")
 		return
@@ -21,7 +21,7 @@ func state_physics_process(host : PlayerPhysics, delta):
 		return
 	
 	#print(host.coll_handler.fall_from_ground())
-	if !host.is_ray_colliding or host.coll_handler.fall_from_ground() or !host.is_grounded:
+	if not host.is_ray_colliding or host.coll_handler.fall_from_ground() or not host.is_grounded:
 		host.is_grounded = false
 		host.snap_margin = 0
 		#host.speed.y = 1
@@ -29,7 +29,7 @@ func state_physics_process(host : PlayerPhysics, delta):
 		finish("OnAir")
 		return
 	
-	if !host.can_fall or (abs(rad2deg(ground_angle)) <= 30):
+	if not host.can_fall or (abs(rad2deg(ground_angle)) <= 30):
 		host.coll_handler.snap_to_ground()
 		host.speed = Vector2.ZERO
 		return
@@ -56,3 +56,4 @@ func state_input(host, event):
 			return
 	if event.is_action_pressed('ui_jump_i%d' % host.player_index):
 		finish(host.jump())
+		return

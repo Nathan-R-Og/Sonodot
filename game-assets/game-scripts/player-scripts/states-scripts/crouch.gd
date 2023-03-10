@@ -3,6 +3,7 @@ extends State
 var animation_frame = 0.0
 var crouched = false
 var slope : float
+
 func state_enter(host : PlayerPhysics, prev_state : String):
 	host.speed = Vector2.ZERO
 	host.gsp = 0

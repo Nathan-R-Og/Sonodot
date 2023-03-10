@@ -18,6 +18,7 @@ func is_current_state(name:String) -> bool:
 	return current_state == name
 
 func _fsm_physics_process(delta):
+	#print(current_state)
 	var cur_state = get_current_state_node()
 	if state_collection.has_state(current_state) and cur_state.is_state_physics_processing():
 		if state_collection.has_state(current_state):
@@ -58,7 +59,7 @@ func change_state(state_name):
 	# Exit
 	if state_collection.has_state(current_state):
 		cur_state.state_exit(host, state_name)
-		cur_state.disconnect("finished", self, "change_state")
+		#cur_state.disconnect("finished", self, "change_state")
 	if host.char_state_manager.is_valid_state(current_state):
 		host.char_state_manager._middle_exit(host, state_name, cur_state, current_state)
 

@@ -16,6 +16,7 @@ func is_state_physics_processing() -> bool: return _state_physics_processing
 func set_state_animation_processing(val : bool) -> void: _state_processing_anim = val
 func is_state_animation_processing() -> bool: return _state_processing_anim
 
+#end, goto
 func finish(next_state: String): emit_signal("finished", next_state)
 
 func state_enter(host, prev_state:String):pass

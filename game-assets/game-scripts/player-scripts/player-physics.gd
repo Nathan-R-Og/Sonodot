@@ -81,6 +81,7 @@ var control_locked = false
 #var control_locked : bool = false setget , is_control_locked
 const control_unlock_time_normal = .5
 onready var control_unlock_timer : Timer = $ControlUnlockTimer
+
 var can_fall : bool
 var is_ray_colliding : bool
 var is_grounded : bool
@@ -334,11 +335,12 @@ func drop_rings():
 	var angle = -deg2rad(101.25)
 	var drop_speed = 300
 	
-	var rings_group := []
 	for i in drop_real:
 		var instance_ring = ring_scene.instance()
-		instance_ring.global_position = global_position;
-		instance_ring.global_position.y -= 10
+		call_deferred("add_child", instance_ring)
+		instance_ring.set_as_toplevel(true)
+		instance_ring.position = position;
+		instance_ring.position.y -= 10
 		instance_ring.linear_velocity.x = cos(angle) * drop_speed 
 		instance_ring.linear_velocity.y = sin(angle) * drop_speed
 		if n:
@@ -348,10 +350,6 @@ func drop_rings():
 		if i == drop_real * 0.5:
 			drop_speed *= 0.5
 			angle = deg2rad(101.25)
-		
-		add_child(instance_ring)
-		rings_group.append(instance_ring)
-		instance_ring.set_as_toplevel(true)
 
 func make_vulnerable():
 	was_damaged = false

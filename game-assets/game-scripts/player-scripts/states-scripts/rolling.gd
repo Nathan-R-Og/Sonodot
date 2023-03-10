@@ -33,8 +33,9 @@ func state_physics_process(host: PlayerPhysics, delta):
 		finish("OnAir")
 		return
 	#print(rad2deg(ground_angle))
-	
-	if abs_gsp <= 67.875:
+	#var arbitraryLimit = 67.875
+	var arbitraryLimit = 7.875
+	if abs_gsp <= arbitraryLimit:
 		if !host.constant_roll:
 			finish("OnGround")
 			return

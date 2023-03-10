@@ -30,13 +30,10 @@ func state_exit(host: PlayerPhysics, next_stage:String, main_state = null):
 func state_animation_process(host: PlayerPhysics, delta:float, animator:CharacterAnimator, state = null):
 	var anim_speed = max(-(8.0 / 60.0 - (animation_speed / 120.0)), 1.0)
 	var anim_name = 'Walking'
-	
 	if animation_speed >= 270:
 		anim_name = 'Running'
-	
-	if animation_speed >= 540:
-		anim_name = 'Running'
-	
+	#if animation_speed >= 540:
+	#	anim_name = 'Running'
 	if animation_speed >= 720:
 		anim_name = 'SuperPeelOut'
 	
